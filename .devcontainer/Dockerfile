@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu-22.04
 ARG DEBIAN_FRONTEND=noninteractive
 ARG USER=vscode
 RUN apt update \
-    && apt install -y --no-install-recommends curl wget git zsh sudo build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev htop \
+    && apt install -y --no-install-recommends curl wget git zsh sudo build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev htop ffmpeg libsm6 libxext6 \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && usermod -s /usr/bin/zsh ${USER}
