@@ -30,3 +30,6 @@ RUN curl -sSLO https://pdm.fming.dev/install-pdm.py \
     && pdm completion zsh >${HOME}/.zfunc/_pdm \
     && echo 'fpath+=${HOME}/.zfunc' >>${HOME}/.zshrc \
     && echo 'autoload -Uz compinit && compinit' >>${HOME}/.zshrc
+
+RUN pip install face-recognition \
+    && pip install opencv-python
