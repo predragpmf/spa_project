@@ -24,7 +24,6 @@ RUN set -x \
     && pyenv global ${PYTHON_VERSION}
 
 RUN curl -sSLO https://pdm.fming.dev/dev/install-pdm.py \
-    && curl -sSL https://pdm.fming.dev/dev/install-pdm.py.sha256 | shasum -a 256 -c - \
     && python install-pdm.py \
     && rm install-pdm.py \
     && mkdir ${HOME}/.zfunc \
