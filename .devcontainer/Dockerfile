@@ -23,7 +23,7 @@ RUN set -x \
     && pyenv install -v ${PYTHON_VERSION} \
     && pyenv global ${PYTHON_VERSION}
 
-RUN curl -sSLO https://pdm.fming.dev/dev/install-pdm.py \
+RUN curl -sSLO https://pdm.fming.dev/install-pdm.py \
     && python install-pdm.py \
     && rm install-pdm.py \
     && mkdir ${HOME}/.zfunc \
