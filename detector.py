@@ -72,9 +72,13 @@ def recognize_faces(video_location: str, model: str = "hog",
             ret, frame = cap.read()
             if ret:
                 frame_counter += 1
-                npArray = np.asarray(frame)
+                height, width, layers = frame.shape
+                new_width = width / 2
+                new_height = height / 2
+                resized_frame = cv2.resize(frame, (new_width, new_height))
+                npArray = np.asarray(resized_frame)
                 img = Image.fromarray(npArray)
-                img = img.convert('RGB')
+                img = img.convert('L')
                 input_image = np.array(img)
                 input_face_locations = face_recognition.face_locations(input_image, 
                                                                        model=model)
