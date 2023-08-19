@@ -29,10 +29,7 @@ args = parser.parse_args()
 
 def encode_known_faces(model: str = "hog",
                        encodings_location: Path = DEFAULT_ENCODINGS_PATH) -> None:
-    """
-    Loads images in the training directory and builds a dictionary of their
-    names and encodings.
-    """
+    
     names = []
     encodings = []
 
@@ -54,10 +51,7 @@ def encode_known_faces(model: str = "hog",
 
 def recognize_faces(video_location: str, model: str = "hog",
     encodings_location: Path = DEFAULT_ENCODINGS_PATH) -> None:
-    """
-    Given an unknown video, get the locations and encodings of any faces and
-    compares them against the known encodings to find potential matches.
-    """
+    
     with encodings_location.open(mode="rb") as f:
         loaded_encodings = pickle.load(f)
         
@@ -68,18 +62,19 @@ def recognize_faces(video_location: str, model: str = "hog",
     frame_counter = 0
     name_set = set()
     with open('output/output.log', 'a') as f:  
+        f.write("date;real_time;video_time;name\n")
         while cap.isOpened():
             ret, frame = cap.read()
             if ret:
                 frame_counter += 1
-                height, width, layers = frame.shape
-                new_width = width / 2
-                new_height = height / 2
-                resized_frame = cv2.resize(frame, (new_width, new_height))
-                npArray = np.asarray(resized_frame)
-                img = Image.fromarray(npArray)
-                img = img.convert('L')
-                input_image = np.array(img)
+                scale_percent = 50
+                width = int(frame.shape[1] * scale_percent / 100)
+                height = int(frame.shape[0] * scale_percent / 100)
+                dim = (width, height)
+                resized_frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+                rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+                input_image = np.asarray(rgb_frame)
+        
                 input_face_locations = face_recognition.face_locations(input_image, 
                                                                        model=model)
                 input_face_encodings = face_recognition.face_encodings(input_image, 
@@ -89,7 +84,7 @@ def recognize_faces(video_location: str, model: str = "hog",
                 current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
                 elapsed_time = int(current_frame / fps)
                 current_time = start_time + elapsed_time
-                current_datetime = datetime.datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
+                current_datetime = datetime.datetime.fromtimestamp(current_time).strftime("%Y-%m-%d;%H:%M:%S")
                 if (frame_counter == 10):
                     percentage = int((current_frame / total_frames) * 100)
                     print(str(percentage) + "%")
@@ -98,24 +93,26 @@ def recognize_faces(video_location: str, model: str = "hog",
                 for unknown_encoding in input_face_encodings:
                     name = _recognize_face(unknown_encoding, loaded_encodings)
                     if not name:
+                        print("Unknown face")
                         name = "Unknown"
                         name_set.clear()
                         continue
                     if name in name_set:
                         continue
                     name_set.add(name)
-                    f.write(current_datetime + " - " + name + '\n')
+                    print(name)
+                    td = datetime.timedelta(seconds=elapsed_time)
+                    f.write(current_datetime + ";" + str(td) + ";" + name + '\n')
                     #_display_face(draw, bounding_box, name)
                     #pillow_image.show()
                 
                 #del draw
-
+            else:
+                print("Processing finished.")
+                break
 
 def _recognize_face(unknown_encoding, loaded_encodings):
-    """
-    Given an unknown encoding and all known encodings, find the known
-    encoding with the most matches.
-    """
+    
     boolean_matches = face_recognition.compare_faces(loaded_encodings["encodings"],
                                                      unknown_encoding)
     votes = Counter(name for match, name in zip(boolean_matches, loaded_encodings["names"])
@@ -125,9 +122,7 @@ def _recognize_face(unknown_encoding, loaded_encodings):
 
 
 def _display_face(draw, bounding_box, name):
-    """
-    Draws bounding boxes around faces, a caption area, and text captions.
-    """
+    
     top, right, bottom, left = bounding_box
     draw.rectangle(((left, top), (right, bottom)), outline=BOUNDING_BOX_COLOR)
     text_left, text_top, text_right, text_bottom = draw.textbbox((left, bottom), name)
