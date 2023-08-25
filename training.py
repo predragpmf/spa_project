@@ -1,7 +1,8 @@
 from pathlib import Path
-import face_recognition
-import pickle
 import argparse
+import pickle
+import face_recognition
+
 
 DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
 
@@ -29,7 +30,7 @@ def encode_known_faces(model: str):
     name_encodings = {"names": names, "encodings": encodings}
     with DEFAULT_ENCODINGS_PATH.open(mode="wb") as f:
         pickle.dump(name_encodings, f)
-        
+
 
 if __name__ == "__main__":
     if args.model:
