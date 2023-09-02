@@ -37,8 +37,8 @@ def recognize_faces(video_location: str, model: str):
     name_set = set()
 
     # Open log for writing
-    with open('output/output.log', 'a') as f:  
-        f.write("date;real_time;video_time;name\n")
+    with open('output/output.csv', 'a') as f:  
+        f.write("date,real_time,video_time,name\n")
 
         while cap.isOpened():
 
@@ -67,7 +67,7 @@ def recognize_faces(video_location: str, model: str):
                 current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
                 elapsed_time = int(current_frame / fps)
                 current_time = start_time + elapsed_time
-                current_datetime = datetime.datetime.fromtimestamp(current_time).strftime("%Y-%m-%d;%H:%M:%S")
+                current_datetime = datetime.datetime.fromtimestamp(current_time).strftime("%Y-%m-%d,%H:%M:%S")
                 if frame_counter == 10:
                     percentage = int((current_frame / total_frames) * 100)
                     print(str(percentage) + "%")
@@ -85,7 +85,7 @@ def recognize_faces(video_location: str, model: str):
                     name_set.add(name)
                     print(name)
                     td = datetime.timedelta(seconds=elapsed_time)
-                    f.write(current_datetime + ";" + str(td) + ";" + name + '\n')
+                    f.write(current_datetime + "," + str(td) + "," + name + '\n')
             else:
                 print("Processing finished.")
                 break
@@ -112,6 +112,6 @@ if __name__ == "__main__":
                 # If video is available, process it, and move it to the archive
                 video_path = os.path.join(DEFAULT_INPUT_PATH, video)
                 recognize_faces(video_location=video_path, model="cnn")
-                time.sleep(5)
+                
                 shutil.move(video_path, DEFAULT_ARCHIVE_PATH)
         time.sleep(1)
