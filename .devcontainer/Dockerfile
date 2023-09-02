@@ -15,21 +15,12 @@ WORKDIR ${HOME}
 ARG PYTHON_VERSION=3.9
 ENV PYENV_ROOT=${HOME}/.pyenv
 ARG PYENV_PATH="${PYENV_ROOT}/bin:${PYENV_ROOT}/shims"
-ARG PDM_PATH="${HOME}/.local/bin"
-ENV PATH="${PYENV_PATH}:${PDM_PATH}:$PATH"
+ENV PATH="${PYENV_PATH}:$PATH"
 RUN set -x \
     && curl http://pyenv.run | bash \
     && echo 'eval "$(pyenv init -)"' >>${HOME}/.zshrc \
     && pyenv install -v ${PYTHON_VERSION} \
     && pyenv global ${PYTHON_VERSION}
-
-RUN curl -sSLO https://pdm.fming.dev/install-pdm.py \
-    && python install-pdm.py \
-    && rm install-pdm.py \
-    && mkdir ${HOME}/.zfunc \
-    && pdm completion zsh >${HOME}/.zfunc/_pdm \
-    && echo 'fpath+=${HOME}/.zfunc' >>${HOME}/.zshrc \
-    && echo 'autoload -Uz compinit && compinit' >>${HOME}/.zshrc
 
 RUN pip install face-recognition \
     && pip install opencv-python
