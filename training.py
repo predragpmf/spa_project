@@ -11,6 +11,7 @@ parser.add_argument("-m", "--model", help="Choose model for training: hog(CPU), 
 args = parser.parse_args()
 
 Path("training").mkdir(exist_ok=True)
+Path("output").mkdir(exist_ok=True)
 
 def encode_known_faces(model: str):
     names = []
