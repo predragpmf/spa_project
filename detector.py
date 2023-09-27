@@ -27,65 +27,71 @@ def recognize_faces(video_location: str, model: str):
         loaded_encodings = pickle.load(f)
 
     # Open video for reading
-    cap = cv2.VideoCapture(video_location)
+    video_capture = cv2.VideoCapture(video_location)
 
     # Get statistics
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    start_time = int(time.time())
-    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    frames_per_sec = video_capture.get(cv2.CAP_PROP_FPS)
+    start_time_sec = int(time.time())
+    total_frames = video_capture.get(cv2.CAP_PROP_FRAME_COUNT)
     frame_counter = 0
     name_set = set()
 
     # Open log for writing
-    with open('output/output.csv', 'a') as f:  
-        f.write("date,real_time,video_time,name\n")
+    with open('output/output.csv', 'a') as output_file:  
+        output_file.write("date,real_time,video_time,name\n")
 
-        while cap.isOpened():
+        while video_capture.isOpened():
 
             # Read video frame by frame:
-            ret, frame = cap.read()
+            frame_exists, video_frame = video_capture.read()
 
-            # If frame exists
-            if ret:
+            if frame_exists:
                 frame_counter += 1
-
+                
                 # Make the frame smaller and RBG
                 scale_percent = 50
-                width = int(frame.shape[1] * scale_percent / 100)
-                height = int(frame.shape[0] * scale_percent / 100)
-                dim = (width, height)
-                resized_frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+                frame_width = int(video_frame.shape[1] * scale_percent / 100)
+                frame_height = int(video_frame.shape[0] * scale_percent / 100)
+                frame_dimensions = (frame_width, frame_height)
+                resized_frame = cv2.resize(video_frame, frame_dimensions, interpolation = cv2.INTER_AREA)
                 rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-                input_image = numpy.asarray(rgb_frame)
+                processed_frame = numpy.asarray(rgb_frame)
 
-                # Detect faces in frame
-                input_face_locations = face_recognition.face_locations(input_image, 
+                # Detect faces in frame:
+                input_face_locations = face_recognition.face_locations(processed_frame, 
                                                                        model=model)
-                input_face_encodings = face_recognition.face_encodings(input_image, 
+                input_face_encodings = face_recognition.face_encodings(processed_frame, 
                                                                        input_face_locations)
-                #pillow_image = Image.fromarray(input_image)
-                current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
-                elapsed_time = int(current_frame / fps)
-                current_time = start_time + elapsed_time
-                current_datetime = datetime.datetime.fromtimestamp(current_time).strftime("%Y-%m-%d,%H:%M:%S")
+                
+                # Calculate log stats:
+                current_frame_number = video_capture.get(cv2.CAP_PROP_POS_FRAMES)
+                elapsed_time_sec = int(current_frame_number / frames_per_sec)
+                current_time_sec = start_time_sec + elapsed_time_sec
+                current_datetime = datetime.datetime.fromtimestamp(current_time_sec).strftime("%Y-%m-%d,%H:%M:%S")
+
+                # Every 10 frames print percentage completed:
                 if frame_counter == 10:
-                    percentage = int((current_frame / total_frames) * 100)
-                    print(str(percentage) + "%")
+                    percentage_complete = int((current_frame_number / total_frames) * 100)
+                    print(str(percentage_complete) + "%")
                     frame_counter = 0
 
+                # Process frames where face is detected:
                 for unknown_encoding in input_face_encodings:
-                    name = recognize_face(unknown_encoding, loaded_encodings)
-                    if not name:
-                        #print("Unknown face")
-                        name = "Unknown"
+                    detected_name = recognize_face(unknown_encoding, loaded_encodings)
+
+                    # If face is not recognized:
+                    if not detected_name:
+                        detected_name = "Unknown"
                         name_set.clear()
                         continue
-                    if name in name_set:
+
+                    # 
+                    if detected_name in name_set:
                         continue
-                    name_set.add(name)
-                    print(name)
-                    td = datetime.timedelta(seconds=elapsed_time)
-                    f.write(current_datetime + "," + str(td) + "," + name + '\n')
+                    name_set.add(detected_name)
+                    print(detected_name)
+                    video_time = datetime.timedelta(seconds=elapsed_time_sec)
+                    f.write(current_datetime + "," + str(video_time) + "," + detected_name + '\n')
             else:
                 print("Processing finished.")
                 break
