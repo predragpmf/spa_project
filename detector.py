@@ -9,7 +9,7 @@ import cv2
 import numpy
 import face_recognition
 import argparse
-import csv
+import stats
 
 
 # Default paths:
@@ -127,7 +127,8 @@ if __name__ == "__main__":
                     # If video is available, process it, and move it to the archive:
                     video_path = os.path.join(DEFAULT_INPUT_PATH, video)
                     recognize_faces(video_location=video_path, model=args.model)
-                    video_stats()
+                    stats.run()
+                    os.remove("output/output.csv")
                     shutil.move(video_path, DEFAULT_ARCHIVE_PATH)
             time.sleep(1)
     else:
